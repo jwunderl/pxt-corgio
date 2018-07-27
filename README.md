@@ -1,6 +1,6 @@
 # pxt-corgio
 
-
+[Example game using Corgio](https://makecode.com/_8fahUb5L7Dgd)
 
 ## TODO
 
@@ -21,4 +21,3 @@ Read more at https://arcade.makecode.com/packages/build-your-own
 
 * for PXT/arcade
 (The metadata above is needed for package search.)
-
