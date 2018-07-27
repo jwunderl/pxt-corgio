@@ -328,7 +328,7 @@ namespace corgi {
             let dir: number = controller.dx();
 
             _player.vx = dir ? normalize(dir) * _maxMoveVelocity :
-                roundTowardsZero(_player.vx * decelerationRate);
+                    roundTowardsZero(_player.vx * decelerationRate);
         })
 
     }
@@ -349,7 +349,7 @@ namespace corgi {
         game.onUpdate(function () {
             if (controller.up.isPressed()) {
                 if (contactLeft() && controller.right.isPressed()
-                    || contactRight() && controller.left.isPressed()) {
+                        || contactRight() && controller.left.isPressed()) {
                     _remainingJump = Math.max(_remainingJump + 1, _maxJump);
                 }
                 if (_remainingJump > 0 && _releasedJump) {
@@ -368,7 +368,7 @@ namespace corgi {
             if ((contactLeft() && controller.left.isPressed()
                 || contactRight() && controller.right.isPressed())
                 && _player.vy > - 10) {
-                _player.ay = _gravity / 4;
+                _player.ay = _gravity >> 2;
             } else {
                 _player.ay = _gravity
             }
@@ -390,11 +390,10 @@ namespace corgi {
         init();
 
         game.onUpdate(function () {
-            scene.centerCameraAt(_player.x - screen.width / 2, 0)
-            // TODO: Fix if centercameraat gets fixed
+            scene.centerCameraAt(_player.x, screen.width >> 1)
         })
     }
-
+    corgi.followCorgi()
     /**
      * Make the character change sprites when moving.
      */
