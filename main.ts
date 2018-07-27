@@ -393,7 +393,7 @@ namespace corgi {
             scene.centerCameraAt(_player.x, screen.width >> 1)
         })
     }
-    corgi.followCorgi()
+
     /**
      * Make the character change sprites when moving.
      */
