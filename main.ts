@@ -237,10 +237,10 @@ namespace corgi {
 
     /**
      * Sets the rate of gravity; increase to fall faster, decrease to fall slower.
-     * @param gravity rate of gravity that causes character to drop, eg: 120
+     * @param gravity rate of gravity that causes character to drop, eg: 300
      */
     //% group="Movement Properties"
-    //% blockId=setGravity block="Set rate of gravity to %gravity"
+    //% blockId=setGravity block="set rate of gravity to %gravity"
     //% weight=50 blockGap=8
     export function setGravity(gravity: number): void {
         init();
@@ -249,10 +249,10 @@ namespace corgi {
 
     /**
      * Sets the maximum speed for moving horizontally
-     * @param rate maximum rate of horizontal movement, eg: 50
+     * @param rate maximum rate of horizontal movement, eg: 70
      */
     //% group="Movement Properties"
-    //% blockId=setHorizontalSpeed block="Set maximum horizontal speed to %rate"
+    //% blockId=setHorizontalSpeed block="set maximum horizontal speed to %rate"
     //% weight=50 blockGap=8
     export function setHorizontalSpeed(rate: number): void {
         init();
@@ -261,10 +261,10 @@ namespace corgi {
 
     /**
      * Sets the initial jump velocity
-     * @param rate initial jumping speed, eg: 65
+     * @param rate initial jumping speed, eg: 125
      */
     //% group="Movement Properties"
-    //% blockId=setJumpVelocity block="Set initial jump speed to %rate"
+    //% blockId=setJumpVelocity block="set initial jump speed to %rate"
     //% weight=50 blockGap=8
     export function setJumpVelocity(rate: number): void {
         init();
@@ -285,7 +285,7 @@ namespace corgi {
      * @param bark phrase to add to script, eg: "bark"
      */
     //% group="Speak"
-    //% blockId=addScript block="Add %bark to script"
+    //% blockId=addScript block="add %bark to script"
     //% weight=95 blockGap=5
     export function addToScript(bark: string): void {
         init();
@@ -296,7 +296,7 @@ namespace corgi {
      * Return the Corgi sprite.
      */
     //% group="Sprite"
-    //% blockId=getSprite block="Get the Corgi Sprite"
+    //% blockId=getSprite block="get the corgi sprite"
     //% weight=95 blockGap=5
     export function getSprite(): Sprite {
         init();
@@ -307,7 +307,7 @@ namespace corgi {
      * Have the character say one of the phrases in the script at random
      */
     //% group="Speak"
-    //% blockId=bark block="Bark!"
+    //% blockId=bark block="bark!"
     //% weight=95 blockGap=5
     export function bark(): void {
         init();
@@ -319,7 +319,7 @@ namespace corgi {
      * @param decelerationRate rate at which corgi should maintain momentum after arrow keys have been released, eg: 0.7
      */
     //% group="Movement"
-    //% blockId=horizontalMovement block="Update left and right movement with arrow keys"
+    //% blockId=horizontalMovement block="update left and right movement with arrow keys"
     //% weight=100 blockGap=5
     export function horizontalMovement(decelerationRate: number = 0.7): void {
         init();
@@ -337,7 +337,7 @@ namespace corgi {
      * Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
      */
     //% group="Movement"
-    //% blockId=verticalMovement block="Jump if up arrow key is pressed"
+    //% blockId=verticalMovement block="jump if up arrow key is pressed"
     //% weight=100 blockGap=5
     export function verticalMovement(): void {
         init();
@@ -384,8 +384,8 @@ namespace corgi {
      *
      */
     //% group="Movement"
-    //% blockId=followCorgi block="Make camera follow corgi left and right"
-    //% weight=100 blockGap=5
+    //% blockId=followCorgi block="make camera follow corgi left and right"
+    //% weight=90 blockGap=5
     export function followCorgi(): void {
         init();
 
@@ -398,7 +398,7 @@ namespace corgi {
      * Make the character change sprites when moving.
      */
     //% group="Movement"
-    //% blockId=updateSprite block="Change image when corgi is moving"
+    //% blockId=updateSprite block="change image when corgi is moving"
     //% weight=100 blockGap=5
     export function updateSprite(): void {
         init();
