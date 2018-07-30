@@ -420,6 +420,7 @@ namespace corgi {
     //% weight=50 blockGap=5
     export function setStill(imgs: Image[]): void {
         _corgi_still = imgs;
+        _player.setImage(pickNext(_corgi_still))
     }
 
     /**
@@ -434,6 +435,7 @@ namespace corgi {
     export function setLookLeft(imgs: Image[]): void {
         _corgi_left = imgs;
         setLookRight();
+        _player.setImage(pickNext(_corgi_still))
     }
 
     /** miscellaneous helper methods **/
