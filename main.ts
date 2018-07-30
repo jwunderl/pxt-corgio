@@ -390,7 +390,7 @@ namespace corgi {
         init();
 
         game.onUpdate(function () {
-            scene.centerCameraAt(_player.x, screen.width >> 1)
+            scene.centerCameraAt(_player.x, screen.height >> 1)
         })
     }
 
