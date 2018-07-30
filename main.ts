@@ -1,7 +1,7 @@
 /**
 * Corgi Platformer Blocks
 */
-//% weight=100 color=#d2b48c icon="\uf188"
+//% weight=100 color=#d2b48c icon="\uf1b0"
 namespace corgi {
     let _player: Sprite;
 
@@ -238,7 +238,7 @@ namespace corgi {
      * Sets the rate of gravity; increase to fall faster, decrease to fall slower.
      * @param gravity rate of gravity that causes character to drop, eg: 300
      */
-    //% group="Movement Properties"
+    //% group="Properties"
     //% blockId=setGravity block="set rate of gravity to %gravity"
     //% weight=50 blockGap=8
     export function setGravity(gravity: number): void {
@@ -250,7 +250,7 @@ namespace corgi {
      * Sets the maximum speed for moving horizontally
      * @param rate maximum rate of horizontal movement, eg: 70
      */
-    //% group="Movement Properties"
+    //% group="Properties"
     //% blockId=setHorizontalSpeed block="set maximum horizontal speed to %rate"
     //% weight=50 blockGap=8
     export function setHorizontalSpeed(rate: number): void {
@@ -262,12 +262,43 @@ namespace corgi {
      * Sets the initial jump velocity
      * @param rate initial jumping speed, eg: 125
      */
-    //% group="Movement Properties"
+    //% group="Properties"
     //% blockId=setJumpVelocity block="set initial jump speed to %rate"
     //% weight=50 blockGap=8
     export function setJumpVelocity(rate: number): void {
         init();
         _jumpVelocity = rate;
+    }
+
+    /**
+     * Set animation for when corgi is standing still.
+     * @param imgs array of images to set animation to
+     */
+    //% group="Properties"
+    //% blockId=setStill block="set animation for standing still to %imgs"
+    //% weight=50 blockGap=5
+    export function setStill(imgs: Image[]): void {
+        init();
+        
+        _corgi_still = imgs;
+        _player.setImage(pickNext(_corgi_still))
+    }
+
+    /**
+     * Set animation for when corgi is looking left and right. Provided Images should
+     * be facing to the left (that is, be the animation you want when the corgi moves left
+     * across the screen).
+     * @param imgs array of images facing left to set animation to
+     */
+    //% group="Properties"
+    //% blockId=setLookLeft block="set animation for horizontal motion to %imgs (facing left)"
+    //% weight=50 blockGap=5
+    export function setLookLeft(imgs: Image[]): void {
+        init();
+
+        _corgi_left = imgs;
+        setLookRight();
+        _player.setImage(pickNext(_corgi_still))
     }
 
     /**
@@ -292,17 +323,6 @@ namespace corgi {
     }
 
     /**
-     * Return the Corgi sprite.
-     */
-    //% group="Sprite"
-    //% blockId=getSprite block="get the corgi sprite"
-    //% weight=95 blockGap=5
-    export function getSprite(): Sprite {
-        init();
-        return _player;
-    }
-
-    /**
      * Have the character say one of the phrases in the script at random
      */
     //% group="Speak"
@@ -311,6 +331,17 @@ namespace corgi {
     export function bark(): void {
         init();
         _player.say(_script.get(Math.randomRange(0, _script.length)), 250);
+    }
+
+    /**
+     * Return the Corgi sprite.
+     */
+    //% group="Sprite"
+    //% blockId=getSprite block="get the corgi sprite"
+    //% weight=95 blockGap=5
+    export function getSprite(): Sprite {
+        init();
+        return _player;
     }
 
     /**
@@ -409,33 +440,6 @@ namespace corgi {
             else if (_player.vx < 0) _player.setImage(pickNext(_corgi_left));
             else _player.setImage(pickNext(_corgi_right));
         })
-    }
-
-    /**
-     * Set animation for when corgi is standing still.
-     * @param imgs array of images to set animation to
-     */
-    //% group="Movement Properties"
-    //% blockId=setStill block="set animation for standing still to %imgs"
-    //% weight=50 blockGap=5
-    export function setStill(imgs: Image[]): void {
-        _corgi_still = imgs;
-        _player.setImage(pickNext(_corgi_still))
-    }
-
-    /**
-     * Set animation for when corgi is looking left and right. Provided Images should
-     * be facing to the left (that is, be the animation you want when the corgi moves left
-     * across the screen).
-     * @param imgs array of images facing left to set animation to
-     */
-    //% group="Movement Properties"
-    //% blockId=setLookLeft block="set animation for horizontal motion to %imgs (facing left)"
-    //% weight=50 blockGap=5
-    export function setLookLeft(imgs: Image[]): void {
-        _corgi_left = imgs;
-        setLookRight();
-        _player.setImage(pickNext(_corgi_still))
     }
 
     /** miscellaneous helper methods **/
