@@ -10,6 +10,8 @@ namespace corgi {
     let _maxMoveVelocity: number = 70;
     let _gravity: number = 300;
     let _jumpVelocity: number = 125;
+
+    // Maximum number of 'double jumps' available to the Corgi
     const _maxJump: number = 2;
 
     // The Corgi is 'touching' a wall if it is within this many pixels of it.
