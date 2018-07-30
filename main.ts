@@ -415,7 +415,7 @@ namespace corgi {
      * Set animation for when corgi is standing still.
      * @param imgs array of images to set animation to
      */
-    //% group="Images"
+    //% group="Movement Properties"
     //% blockId=setStill block="set animation for standing still to %imgs"
     //% weight=50 blockGap=5
     export function setStill(imgs: Image[]): void {
@@ -428,7 +428,7 @@ namespace corgi {
      * across the screen).
      * @param imgs array of images facing left to set animation to
      */
-    //% group="Images"
+    //% group="Movement Properties"
     //% blockId=setLookLeft block="set animation for horizontal motion to %imgs (facing left)"
     //% weight=50 blockGap=5
     export function setLookLeft(imgs: Image[]): void {
@@ -462,12 +462,6 @@ namespace corgi {
         return input[(_count / state) % input.length];
     }
 
-    // Provides an impulse for a 'double jump'
-    function doubleJump(): void {
-        _player.vy = Math.clamp((-4 * _jumpVelocity) / 3, -30,
-            _player.vy - _jumpVelocity);
-    }
-
     // Check if there is contact to the left; this includes tilemap walls and the boundaries of the screen
     function contactLeft(): boolean {
         return _player.left <= _touching || _player.isHittingTile(CollisionDirection.Left);
@@ -483,6 +477,7 @@ namespace corgi {
         return screen.height - _player.bottom <= _touching || _player.isHittingTile(CollisionDirection.Bottom);
     }
 
+    // Set the animation for looking right to be the opposite of looking left
     function setLookRight(): void {
         _corgi_right = [];
         for (let i: number = 0; i < _corgi_left.length; i++) {
