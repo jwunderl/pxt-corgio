@@ -28,7 +28,7 @@ namespace corgi {
         "wag"
     ];
 
-    const _corgi_still: Image[] = [
+    let _corgi_still: Image[] = [
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -231,11 +231,8 @@ namespace corgi {
         `
     ];
 
-    let _corgi_right: Image[] = [];
-    for (let i: number = 0; i < _corgi_left.length; i++) {
-        _corgi_right[i] = _corgi_left[i].clone();
-        _corgi_right[i].flipX();
-    }
+    let _corgi_right: Image[];
+    setLookRight();
 
     /**
      * Sets the rate of gravity; increase to fall faster, decrease to fall slower.
@@ -330,7 +327,7 @@ namespace corgi {
             let dir: number = controller.dx();
 
             _player.vx = dir ? normalize(dir) * _maxMoveVelocity :
-                    roundTowardsZero(_player.vx * decelerationRate);
+                roundTowardsZero(_player.vx * decelerationRate);
         })
 
     }
@@ -351,7 +348,7 @@ namespace corgi {
         game.onUpdate(function () {
             if (controller.up.isPressed()) {
                 if (contactLeft() && controller.right.isPressed()
-                        || contactRight() && controller.left.isPressed()) {
+                    || contactRight() && controller.left.isPressed()) {
                     _remainingJump = Math.max(_remainingJump + 1, _maxJump);
                 }
                 if (_remainingJump > 0 && _releasedJump) {
@@ -383,7 +380,7 @@ namespace corgi {
     }
 
     /**
-     *
+     * Set camera to follow corgi horizontally, while keeping the screen centered vertically.
      */
     //% group="Movement"
     //% blockId=followCorgi block="make camera follow corgi left and right"
@@ -412,6 +409,31 @@ namespace corgi {
             else if (_player.vx < 0) _player.setImage(pickNext(_corgi_left));
             else _player.setImage(pickNext(_corgi_right));
         })
+    }
+
+    /**
+     * Set animation for when corgi is standing still.
+     * @param imgs array of images to set animation to
+     */
+    //% group="Images"
+    //% blockId=setStill block="set animation for standing still to %imgs"
+    //% weight=50 blockGap=5
+    export function setStill(imgs: Image[]): void {
+        _corgi_still = imgs;
+    }
+
+    /**
+     * Set animation for when corgi is looking left and right. Provided Images should
+     * be facing to the left (that is, be the animation you want when the corgi moves left
+     * across the screen).
+     * @param imgs array of images facing left to set animation to
+     */
+    //% group="Images"
+    //% blockId=setLookLeft block="set animation for horizontal motion to %imgs (facing left)"
+    //% weight=50 blockGap=5
+    export function setLookLeft(imgs: Image[]): void {
+        _corgi_left = imgs;
+        setLookRight();
     }
 
     /** miscellaneous helper methods **/
@@ -459,5 +481,14 @@ namespace corgi {
     // Check if there is contact to below; this includes tilemap walls and the boundaries of the screen
     function contactBelow(): boolean {
         return screen.height - _player.bottom <= _touching || _player.isHittingTile(CollisionDirection.Bottom);
+    }
+
+    function setLookRight(): void {
+        _corgi_right = [];
+        for (let i: number = 0; i < _corgi_left.length; i++) {
+            let nextImage = _corgi_left[i].clone();
+            nextImage.flipX();
+            _corgi_right.push(nextImage);
+        }
     }
 }
