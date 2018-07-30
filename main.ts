@@ -279,7 +279,7 @@ namespace corgi {
     //% weight=50 blockGap=5
     export function setStill(imgs: Image[]): void {
         init();
-        
+
         _corgi_still = imgs;
         _player.setImage(pickNext(_corgi_still))
     }
@@ -455,7 +455,8 @@ namespace corgi {
 
     // Round input towards 0; 1.4 becomes 1.0, -0.4 becomes 0.0
     function roundTowardsZero(input: number): number {
-        return Math.floor(input) + input < 0 ? 1 : 0;
+        return Math.floor(input) +
+                    input < 0 ? 1 : 0;
     }
 
     // Normalize input number to 0, 1, or -1
