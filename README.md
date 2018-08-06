@@ -1,87 +1,72 @@
 # pxt-corgio
 
-[Example game using Corgio](https://makecode.com/_JvACaC3ed2oH)
+[Example game using Corgio](https://makecode.com/_bfKJ2tFgPPjs)
 
 ## Quick Reference
 
+## corgi namespace blocks
+```ts
+corgi.create(kind: number, x: number = 10, y: number = 70): Corgi
+```
+> create a new Corgi with the given kind. Optionally pass inital x / y coordinates
+
+## Corgi blocks
+
 ### Movement
 ```ts
-function horizontalMovement(decelerationRate: number): void
+Corgi.horizontalMovement(decelerationRate: number): void
 ```
 > Make the character move in the direction indicated by the left and right arrow keys.
 > [optional] @param decelerationRate rate at which corgi should maintain momentum after arrow keys have been released, eg: 0.7
 
 ```ts
-function verticalMovement(): void
+Corgi.verticalMovement(): void
 ```
 > Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
 > Interacts with the edges of the screen, and walls in a tilemap.
 
 ```ts
-function updateSprite(): void
+Corgi.updateSprite(): void
 ```
 > Make the character change sprites when moving.
 
 ```ts
-function followCorgi(): void
+Corgi.follow(): void
 ```
 > Set camera to follow corgi horizontally, while keeping the screen centered vertically.
 
-### Properties
-```ts
-function setGravity(gravity: number): void
-```
-> Sets the rate of gravity; increase to fall faster, decrease to fall slower.
-> @param gravity rate of gravity that causes character to drop, eg: 300
+### Corgi Properties
+
+* horizontal speed: Max speed for corgi to move left and right
+* gravity: force of gravity to apply to corgi
+* jump speed: rate at which corgi initally jumps
+* max jumps in a row: how many times corgi can jump without hitting the ground or a wall
 
 ```ts
-function setHorizontalSpeed(rate: number): void
+Corgi.sprite
 ```
-> Sets the maximum speed for moving horizontally
-> @param rate maximum rate of horizontal movement, eg: 70
+> The sprite used to represent the Corgi on screen
 
 ```ts
-function setJumpVelocity(rate: number): void
+Corgi.leftAnimation(input: Image[]): void
 ```
-> Sets the initial jump velocity
-> @param rate initial jumping speed, eg: 125
-
 ```ts
-function setStill(imgs: Image[]): void
+Corgi.stillAnimation
 ```
-> Set animation for when corgi is standing still.
-> @param imgs array of images to set animation to
-
-```ts
-function setLookLeft(imgs: Image[]): void
-```
-> Set animation for when corgi is looking left and right. Provided Images should be facing to the left (that is, be the animation you want when the corgi moves left across the screen).
-> @param imgs array of images facing left to set animation to
+> Change the images used to represent the corgi; all images in the array will be cycled through to 'animate' the corgi. Setting the left animation will automatically update the animation for moving right as well.
 
 ### Speak
+
 ```ts
-function addToScript(bark: string): void
+Corgi,addToScript(input: string): void
 ```
 > Add the a new way phrase for the character to say
-> @param bark phrase to add to script, eg: "bark"
+> @param input phrase to add to script, eg: "bark"
 
 ```ts
-function bark(): void
+Corgi.bark(): void
 ```
 > Have the character say one of the phrases in the script at random
-
-### Sprite
-```ts
-function getSprite(): Sprite
-```
-> Return the Corgi sprite.
-
-### Script only
-```ts
-function setScript(script: string[]): void
-```
-> Sets the script for the sprite to provided list
-> @param script for character to use, eg: ["bark", "pant"];
 
 ## License
 MIT
