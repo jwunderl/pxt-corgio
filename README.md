@@ -58,7 +58,7 @@ Corgi.stillAnimation
 ### Speak
 
 ```ts
-Corgi,addToScript(input: string): void
+Corgi.addToScript(input: string): void
 ```
 > Add the a new way phrase for the character to say
 > @param input phrase to add to script, eg: "bark"
