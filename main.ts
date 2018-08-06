@@ -1,34 +1,10 @@
-/**
+a/**
 * Corgi Platformer Blocks
 */
 //% weight=100 color=#d2b48c icon="\uf1b0"
+//% groups='["Create", "Movement", "Speak", "Properties"]'
 namespace corgi {
-    let _player: Sprite;
-
-    let _initJump: boolean = true;
-    let _releasedJump: boolean = true;
-    let _maxMoveVelocity: number = 70;
-    let _gravity: number = 300;
-    let _jumpVelocity: number = 125;
-
-    // Maximum number of 'double jumps' available to the Corgi
-    const _maxJump: number = 2;
-
-    // The Corgi is 'touching' a wall if it is within this many pixels of it.
-    let _touching: number = 2;
-    let _remainingJump: number = _maxJump;
-
-    // Current time / number of times updateSprite has been called
-    let _count = 0;
-
-    let _script: string[] = [
-        "bork",
-        "bork bork",
-        "pant",
-        "wag"
-    ];
-
-    let _corgi_still: Image[] = [
+    export let _corgi_still: Image[] = [
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -138,7 +114,7 @@ namespace corgi {
         `,
     ];
 
-    let _corgi_left: Image[] = [
+    export let _corgi_left: Image[] = [
         img`
             . . . . . . . . . . . . . . . .
             . . . . . . . . . . . . . . . .
@@ -231,117 +207,126 @@ namespace corgi {
         `
     ];
 
-    let _corgi_right: Image[];
-    setLookRight();
+    export let _corgi_right: Image[] = reflect(_corgi_left);
 
     /**
-     * Sets the rate of gravity; increase to fall faster, decrease to fall slower.
-     * @param gravity rate of gravity that causes character to drop, eg: 300
+     * Creates a new dart from an image and kind
+     * @param kind the kind to make the corgi
+     * @param x optional initial x position, eg: 10
+     * @param y optional initial y position, eg: 70
+     */
+    //% blockId=corgiCreate block="corgi of kind %kind=spritetype || at x %x y %y"
+    //% expandableArgumentMode=toggle
+    //% inlineInputMode=inline
+    //% blockSetVariable=myCorg
+    //% weight=100
+    //% group="Create"
+    export function create(kind: number,
+        x: number = 10,
+        y: number = 70): Corgi {
+        return new Corgi(kind, x, y);
+    }
+
+    // Round input towards 0; 1.4 becomes 1.0, -0.4 becomes 0.0
+    export function roundTowardsZero(input: number): number {
+        return Math.floor(input) + input < 0 ? 1 : 0;
+    }
+
+    // Normalize input number to 0, 1, or -1
+    export function normalize(input: number): number {
+        return input ? input / Math.abs(input) : 0;
+    }
+
+    // Set the animation for looking right to be the opposite of looking left
+    export function reflect(input: Image[]): Image[] {
+        let output: Image[] = [];
+        for (let i: number = 0; i < input.length; i++) {
+            let nextImage = input[i].clone();
+            nextImage.flipX();
+            output.push(nextImage);
+        }
+        return output;
+    }
+}
+
+/**
+ * A Corgi
+ **/
+//% blockNamespace=corgi color="#d2b48c" blockGap=8
+class Corgi {
+    player: Sprite;
+    stillAnimation: Image[];
+    private _leftAnimation: Image[];
+    private _rightAnimation: Image[];
+
+    //% group="Properties" blockSetVariable="myCorg"
+    //% blockCombine block="horizontal speed"
+    maxMoveVelocity: number;
+    //% group="Properties" blockSetVariable="myCorg"
+    //% blockCombine block="gravity"
+    gravity: number;
+    //% group="Properties" blockSetVariable="myCorg"
+    //% blockCombine block="jump speed"
+    jumpVelocity: number;
+    //% group="Properties" blockSetVariable="myCorg"
+    //% blockCombine block="max jumps in a row"
+    maxJump: number;
+
+    private initJump: boolean;
+    private releasedJump: boolean;
+    private count: number;
+    private touching: number;
+    private remainingJump: number;
+    private script: string[];
+
+    public constructor(kind: number, x: number, y: number) {
+        this.maxMoveVelocity = 70;
+        this.gravity = 300;
+        this.jumpVelocity = 125;
+
+        this.initJump = true;
+        this.releasedJump = true;
+        this.maxJump = 2;
+        this.count = 0;
+        this.touching = 2;
+        this.remainingJump = this.maxJump;
+        this.script = [
+            "bork",
+            "bork bork",
+            "pant",
+            "wag"
+        ];
+
+        this.stillAnimation = corgi._corgi_still;
+        this._leftAnimation = corgi._corgi_left;
+        this._rightAnimation = corgi._corgi_right;
+
+        this.player = sprites.create(this.stillAnimation[0], kind);
+        this.player.setFlag(SpriteFlag.StayInScreen, true);
+        this.player.ay = this.gravity;
+        this.player.x = x;
+        this.player.y = y;
+    }
+
+    /**
+     * Gets the Corgis's sprite
      */
     //% group="Properties"
-    //% blockId=setGravity block="set rate of gravity to %gravity"
-    //% weight=50 blockGap=8
-    export function setGravity(gravity: number): void {
-        init();
-        _gravity = gravity;
+    //% blockId=corgSprite block="%corgi(myCorg) sprite"
+    //% weight=8
+    get sprite(): Sprite {
+        return this.player;
     }
 
     /**
-     * Sets the maximum speed for moving horizontally
-     * @param rate maximum rate of horizontal movement, eg: 70
+     * Set animation for moving left and right (right will be generated by reflecting left)
      */
     //% group="Properties"
-    //% blockId=setHorizontalSpeed block="set maximum horizontal speed to %rate"
-    //% weight=50 blockGap=8
-    export function setHorizontalSpeed(rate: number): void {
-        init();
-        _maxMoveVelocity = rate;
-    }
-
-    /**
-     * Sets the initial jump velocity
-     * @param rate initial jumping speed, eg: 125
-     */
-    //% group="Properties"
-    //% blockId=setJumpVelocity block="set initial jump speed to %rate"
-    //% weight=50 blockGap=8
-    export function setJumpVelocity(rate: number): void {
-        init();
-        _jumpVelocity = rate;
-    }
-
-    /**
-     * Set animation for when corgi is standing still.
-     * @param imgs array of images to set animation to
-     */
-    //% group="Properties"
-    //% blockId=setStill block="set animation for standing still to %imgs"
-    //% weight=50 blockGap=5
-    export function setStill(imgs: Image[]): void {
-        init();
-
-        _corgi_still = imgs;
-        _player.setImage(pickNext(_corgi_still))
-    }
-
-    /**
-     * Set animation for when corgi is looking left and right. Provided Images should
-     * be facing to the left (that is, be the animation you want when the corgi moves left
-     * across the screen).
-     * @param imgs array of images facing left to set animation to
-     */
-    //% group="Properties"
-    //% blockId=setLookLeft block="set animation for horizontal motion to %imgs (facing left)"
-    //% weight=50 blockGap=5
-    export function setLookLeft(imgs: Image[]): void {
-        init();
-
-        _corgi_left = imgs;
-        setLookRight();
-        _player.setImage(pickNext(_corgi_still))
-    }
-
-    /**
-     * Sets the script for the sprite to provided list
-     * @param script for character to use, eg: ["bark", "pant"];
-     */
-    export function setScript(script: string[]): void {
-        init();
-        _script = script;
-    }
-
-    /**
-     * Add the a new way phrase for the character to say
-     * @param bark phrase to add to script, eg: "bark"
-     */
-    //% group="Speak"
-    //% blockId=addScript block="add %bark to script"
-    //% weight=95 blockGap=5
-    export function addToScript(bark: string): void {
-        init();
-        _script.push(bark);
-    }
-
-    /**
-     * Have the character say one of the phrases in the script at random
-     */
-    //% group="Speak"
-    //% blockId=bark block="bark!"
-    //% weight=95 blockGap=5
-    export function bark(): void {
-        init();
-        _player.say(_script.get(Math.randomRange(0, _script.length)), 250);
-    }
-
-    /**
-     * Return the Corgi sprite.
-     */
-    //% group="Sprite"
-    //% blockId=getSprite block="get the corgi sprite"
-    //% weight=95 blockGap=5
-    export function getSprite(): Sprite {
-        init();
-        return _player;
+    //% blockId=corgLeftAnimation block="set %corgi(myCorg) left animation to %input"
+    //% weight=8
+    leftAnimation(input: Image[]): void {
+        this._leftAnimation = input;
+        this._rightAnimation = corgi.reflect(input);
     }
 
     /**
@@ -349,63 +334,61 @@ namespace corgi {
      * @param decelerationRate rate at which corgi should maintain momentum after arrow keys have been released, eg: 0.7
      */
     //% group="Movement"
-    //% blockId=horizontalMovement block="update left and right movement with arrow keys"
+    //% blockId=horizontalMovement block="make %corgi(myCorg) move left and right with arrow keys"
     //% weight=100 blockGap=5
-    export function horizontalMovement(decelerationRate: number = 0.7): void {
-        init();
-
+    horizontalMovement(decelerationRate: number = 0.7): void {
+        let _this = this
         game.onUpdate(function () {
             let dir: number = controller.dx();
 
-            _player.vx = dir ? normalize(dir) * _maxMoveVelocity :
-                roundTowardsZero(_player.vx * decelerationRate);
+            _this.player.vx = dir ? corgi.normalize(dir) * _this.maxMoveVelocity :
+                corgi.roundTowardsZero(_this.player.vx * decelerationRate);
         })
-
     }
 
     /**
      * Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
      */
     //% group="Movement"
-    //% blockId=verticalMovement block="jump if up arrow key is pressed"
+    //% blockId=verticalMovement block="make %corgi(myCorg) jump if up arrow key is pressed"
     //% weight=100 blockGap=5
-    export function verticalMovement(): void {
-        init();
-
+    verticalMovement(): void {
+        let _this = this
         controller.up.onEvent(ControllerButtonEvent.Released, function () {
-            _releasedJump = true;
+            _this.releasedJump = true;
         })
 
         game.onUpdate(function () {
             if (controller.up.isPressed()) {
-                if (contactLeft() && controller.right.isPressed()
-                    || contactRight() && controller.left.isPressed()) {
-                    _remainingJump = Math.max(_remainingJump + 1, _maxJump);
+                if (_this.contactLeft() && controller.right.isPressed()
+                    || _this.contactRight() && controller.left.isPressed()) {
+                    _this.remainingJump = Math.max(_this.remainingJump + 1, _this.maxJump);
                 }
-                if (_remainingJump > 0 && _releasedJump) {
-                    _releasedJump = false;
-                    if (_initJump) {
-                        _player.vy = -1 * _jumpVelocity;
-                        _initJump = false;
+                if (_this.remainingJump > 0 && _this.releasedJump) {
+                    _this.releasedJump = false;
+                    if (_this.initJump) {
+                        _this.player.vy = -1 * _this.jumpVelocity;
+                        _this.initJump = false;
                     } else {
-                        _player.vy = Math.clamp((-4 * _jumpVelocity) / 3, -30,
-                            _player.vy - _jumpVelocity);
+                        _this.player.vy = Math.clamp((-4 * _this.jumpVelocity) / 3, -30,
+                            _this.player.vy - _this.jumpVelocity);
                     }
-                    _remainingJump--;
+                    _this.remainingJump--;
                 }
             }
 
-            if ((contactLeft() && controller.left.isPressed()
-                || contactRight() && controller.right.isPressed())
-                && _player.vy > - 10) {
-                _player.ay = _gravity >> 2;
+            if ((_this.contactLeft() && controller.left.isPressed()
+                || _this.contactRight() && controller.right.isPressed())
+                && _this.player.vy > - 10) {
+                _this.player.ay = _this.gravity >> 2;
             } else {
-                _player.ay = _gravity
+                _this.player.ay = _this.gravity
             }
 
-            if (contactBelow()) {
-                if (_initJump) _remainingJump = _maxJump;
-                _initJump = true;
+            if (_this.contactBelow()) {
+                if (_this.initJump)
+                    _this.remainingJump = _this.maxJump;
+                _this.initJump = true;
             }
         })
     }
@@ -414,13 +397,12 @@ namespace corgi {
      * Set camera to follow corgi horizontally, while keeping the screen centered vertically.
      */
     //% group="Movement"
-    //% blockId=followCorgi block="make camera follow corgi left and right"
+    //% blockId=followCorgi block="make camera follow %corgi(myCorg) left and right"
     //% weight=90 blockGap=5
-    export function followCorgi(): void {
-        init();
-
+    follow(): void {
+        let _this = this
         game.onUpdate(function () {
-            scene.centerCameraAt(_player.x, screen.height >> 1)
+            scene.centerCameraAt(_this.player.x, screen.height >> 1)
         })
     }
 
@@ -428,69 +410,60 @@ namespace corgi {
      * Make the character change sprites when moving.
      */
     //% group="Movement"
-    //% blockId=updateSprite block="change image when corgi is moving"
+    //% blockId=updateSprite block="change image when %corgi(myCorg) is moving"
     //% weight=100 blockGap=5
-    export function updateSprite(): void {
-        init();
-
+    updateSprite(): void {
+        let _this = this;
         game.onUpdate(function () {
-            _count++;
+            _this.count++;
 
-            if (_player.vx == 0) _player.setImage(pickNext(_corgi_still, 6));
-            else if (_player.vx < 0) _player.setImage(pickNext(_corgi_left));
-            else _player.setImage(pickNext(_corgi_right));
+            if (_this.player.vx == 0) _this.player.setImage(_this.pickNext(_this.stillAnimation, 6));
+            else if (_this.player.vx < 0) _this.player.setImage(_this.pickNext(_this._leftAnimation));
+            else _this.player.setImage(_this.pickNext(_this._rightAnimation));
         })
     }
 
-    /** miscellaneous helper methods **/
-
-    // Initialize state of corgi.
-    function init(): void {
-        if (!_player) {
-            _player = sprites.create(_corgi_still[0], 0);
-            _player.setFlag(SpriteFlag.StayInScreen, true);
-            _player.ay = _gravity;
-        }
+    /**
+     * Add the a new way phrase for the character to say
+     * @param input phrase to add to script, eg: "bark"
+     */
+    //% group="Speak"
+    //% blockId=addScript block="teach %corgi(myCorg) the word %input"
+    //% weight=95 blockGap=5
+    addToScript(input: string): void {
+        this.script.push(input);
     }
 
-    // Round input towards 0; 1.4 becomes 1.0, -0.4 becomes 0.0
-    function roundTowardsZero(input: number): number {
-        return Math.floor(input) +
-                    input < 0 ? 1 : 0;
-    }
-
-    // Normalize input number to 0, 1, or -1
-    function normalize(input: number): number {
-        return input ? input / Math.abs(input) : 0;
+    /**
+     * Have the character say one of the phrases in the script at random
+     */
+    //% group="Speak"
+    //% blockId=bark block="make %corgi(myCorg) bark!"
+    //% weight=95 blockGap=5
+    bark() {
+        this.player.say(Math.pickRandom(this.script), 250);
     }
 
     // Grab the next Image to use from the given array, based off the current _count
-    function pickNext(input: Image[], state: number = 3): Image {
-        return input[(_count / state) % input.length];
+    private pickNext(input: Image[], state: number = 3): Image {
+        return input[(this.count / state) % input.length];
     }
 
     // Check if there is contact to the left; this includes tilemap walls and the boundaries of the screen
-    function contactLeft(): boolean {
-        return _player.left <= _touching || _player.isHittingTile(CollisionDirection.Left);
+    private contactLeft(): boolean {
+        return this.player.left <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Left);
     }
 
     // Check if there is contact to the right; this includes tilemap walls and the boundaries of the screen
-    function contactRight(): boolean {
-        return screen.width - _player.right <= _touching || _player.isHittingTile(CollisionDirection.Right);
+    private contactRight(): boolean {
+        return screen.width - this.player.right <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Right);
     }
 
     // Check if there is contact to below; this includes tilemap walls and the boundaries of the screen
-    function contactBelow(): boolean {
-        return screen.height - _player.bottom <= _touching || _player.isHittingTile(CollisionDirection.Bottom);
-    }
-
-    // Set the animation for looking right to be the opposite of looking left
-    function setLookRight(): void {
-        _corgi_right = [];
-        for (let i: number = 0; i < _corgi_left.length; i++) {
-            let nextImage = _corgi_left[i].clone();
-            nextImage.flipX();
-            _corgi_right.push(nextImage);
-        }
+    private contactBelow(): boolean {
+        return screen.height - this.player.bottom <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Bottom);
     }
 }
