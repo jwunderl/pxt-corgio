@@ -222,8 +222,8 @@ namespace corgi {
     //% weight=100
     //% group="Create"
     export function create(kind: number,
-                x: number = 10,
-                y: number = 70): Corgi {
+        x: number = 10,
+        y: number = 70): Corgi {
         return new Corgi(kind, x, y);
     }
 
@@ -249,6 +249,15 @@ namespace corgi {
     }
 }
 
+enum CorgiFlags {
+    None = 0,
+    HorizontalMovement = 1 << 0,
+    VerticalMovement = 1 << 1,
+    UpdateSprite = 1 << 2,
+    CameraFollow = 1 << 3,
+    All = ~(~0 << 4)
+}
+
 /**
  * A Corgi
  **/
@@ -271,7 +280,11 @@ class Corgi {
     //% group="Properties" blockSetVariable="myCorg"
     //% blockCombine block="max jumps in a row"
     maxJump: number;
+    //% group="Properties" blockSetVariable="myCorg"
+    //% blockCombine block="rate horizontal movement is slowed"
+    decelerationRate: number;
 
+    private controlFlags: number;
     private initJump: boolean;
     private releasedJump: boolean;
     private count: number;
@@ -296,6 +309,8 @@ class Corgi {
             "pant",
             "wag"
         ];
+
+        this.controlFlags = CorgiFlags.None;
 
         this.stillAnimation = corgi._corgi_still;
         this._leftAnimation = corgi._corgi_left;
@@ -331,18 +346,21 @@ class Corgi {
 
     /**
      * Make the character move in the direction indicated by the left and right arrow keys.
-     * @param decelerationRate rate at which corgi should maintain momentum after arrow keys have been released, eg: 0.7
      */
     //% group="Movement"
-    //% blockId=horizontalMovement block="make %corgi(myCorg) move left and right with arrow keys"
+    //% blockId=horizontalMovement block="make %corgi(myCorg) move left and right with arrow keys || %on=toggleOnOff"
     //% weight=100 blockGap=5
-    horizontalMovement(decelerationRate: number = 0.7): void {
+    horizontalMovement(on: boolean = true): void {
         let _this = this
+
+        this.updateFlags(on, CorgiFlags.HorizontalMovement)
+
         game.onUpdate(function () {
+            if (!(_this.controlFlags & CorgiFlags.HorizontalMovement)) return;
             let dir: number = controller.dx();
 
             _this.player.vx = dir ? corgi.normalize(dir) * _this.maxMoveVelocity :
-                                    corgi.roundTowardsZero(_this.player.vx * decelerationRate);
+                corgi.roundTowardsZero(_this.player.vx * _this.decelerationRate);
         })
     }
 
@@ -350,18 +368,22 @@ class Corgi {
      * Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
      */
     //% group="Movement"
-    //% blockId=verticalMovement block="make %corgi(myCorg) jump if up arrow key is pressed"
+    //% blockId=verticalMovement block="make %corgi(myCorg) jump if up arrow key is pressed || %on=toggleOnOff"
     //% weight=100 blockGap=5
-    verticalMovement(): void {
+    verticalMovement(on: boolean = true): void {
         let _this = this
         controller.up.onEvent(ControllerButtonEvent.Released, function () {
             _this.releasedJump = true;
         })
 
+        this.updateFlags(on, CorgiFlags.VerticalMovement);
+
         game.onUpdate(function () {
+            if (!(_this.controlFlags & CorgiFlags.VerticalMovement)) return;
+
             if (controller.up.isPressed()) {
                 if (_this.contactLeft() && controller.right.isPressed()
-                        || _this.contactRight() && controller.left.isPressed()) {
+                    || _this.contactRight() && controller.left.isPressed()) {
                     _this.remainingJump = Math.max(_this.remainingJump + 1, _this.maxJump);
                 }
                 if (_this.remainingJump > 0 && _this.releasedJump) {
@@ -371,15 +393,15 @@ class Corgi {
                         _this.initJump = false;
                     } else {
                         _this.player.vy = Math.clamp((-4 * _this.jumpVelocity) / 3, -30,
-                                _this.player.vy - _this.jumpVelocity);
+                            _this.player.vy - _this.jumpVelocity);
                     }
                     _this.remainingJump--;
                 }
             }
 
             if ((_this.contactLeft() && controller.left.isPressed()
-                    || _this.contactRight() && controller.right.isPressed())
-                    && _this.player.vy > - 10) {
+                || _this.contactRight() && controller.right.isPressed())
+                && _this.player.vy > - 10) {
                 _this.player.ay = _this.gravity >> 2;
             } else {
                 _this.player.ay = _this.gravity
@@ -397,29 +419,39 @@ class Corgi {
      * Set camera to follow corgi horizontally, while keeping the screen centered vertically.
      */
     //% group="Movement"
-    //% blockId=followCorgi block="make camera follow %corgi(myCorg) left and right"
+    //% blockId=followCorgi block="make camera follow %corgi(myCorg) left and right || %on=toggleOnOff"
     //% weight=90 blockGap=5
-    follow(): void {
+    follow(on: boolean = true): void {
         let _this = this
+
+        this.updateFlags(on, CorgiFlags.CameraFollow);
+
         game.onUpdate(function () {
-            scene.centerCameraAt(_this.player.x, screen.height >> 1)
+            if (_this.controlFlags & CorgiFlags.CameraFollow) {
+                scene.centerCameraAt(_this.player.x, screen.height >> 1)
+            }
         })
     }
-    
+
     /**
      * Make the character change sprites when moving.
      */
     //% group="Movement"
-    //% blockId=updateSprite block="change image when %corgi(myCorg) is moving"
+    //% blockId=updateSprite block="change image when %corgi(myCorg) is moving || %on=toggleOnOff"
     //% weight=100 blockGap=5
-    updateSprite(): void {
+    updateSprite(on: boolean = true): void {
         let _this = this;
+
+        this.updateFlags(on, CorgiFlags.UpdateSprite);
+
         game.onUpdate(function () {
+            if (!(_this.controlFlags & CorgiFlags.UpdateSprite)) return;
+
             _this.count++;
 
-            if (_this.player.vx == 0)        _this.player.setImage(_this.pickNext(_this.stillAnimation, 6));
-            else if (_this.player.vx < 0)    _this.player.setImage(_this.pickNext(_this._leftAnimation));
-            else                             _this.player.setImage(_this.pickNext(_this._rightAnimation));
+            if (_this.player.vx == 0) _this.player.setImage(_this.pickNext(_this.stillAnimation, 6));
+            else if (_this.player.vx < 0) _this.player.setImage(_this.pickNext(_this._leftAnimation));
+            else _this.player.setImage(_this.pickNext(_this._rightAnimation));
         })
     }
 
@@ -443,27 +475,35 @@ class Corgi {
     bark() {
         this.player.say(Math.pickRandom(this.script), 250);
     }
-    
+
+    private updateFlags(on: boolean, flag: CorgiFlags): void {
+        if (on) this.controlFlags |= flag;
+        else this.controlFlags &= CorgiFlags.All ^ flag;
+    }
+
     // Grab the next Image to use from the given array, based off the current _count
     private pickNext(input: Image[], state: number = 3): Image {
         return input[(this.count / state) % input.length];
     }
-    
+
     // Check if there is contact to the left; this includes tilemap walls and the boundaries of the screen
     private contactLeft(): boolean {
-        return this.player.left <= this.touching
-                || this.player.isHittingTile(CollisionDirection.Left);
+        let screenEdge = game.currentScene().camera.offsetX;
+        return this.player.left - screenEdge <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Left);
     }
 
     // Check if there is contact to the right; this includes tilemap walls and the boundaries of the screen
     private contactRight(): boolean {
-        return screen.width - this.player.right <= this.touching
-                || this.player.isHittingTile(CollisionDirection.Right);
+        let screenEdge = screen.width + game.currentScene().camera.offsetX;
+        return screenEdge - this.player.right <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Right);
     }
 
     // Check if there is contact to below; this includes tilemap walls and the boundaries of the screen
     private contactBelow(): boolean {
-        return screen.height - this.player.bottom <= this.touching
-                || this.player.isHittingTile(CollisionDirection.Bottom);
+        let screenEdge = screen.height + game.currentScene().camera.offsetY;
+        return screenEdge - this.player.bottom <= this.touching
+            || this.player.isHittingTile(CollisionDirection.Bottom);
     }
 }
