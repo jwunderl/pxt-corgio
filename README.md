@@ -10,7 +10,7 @@
 corgi.create(kind: number, x: number = 10, y: number = 70): Corgi
 ```
 
-> create a new Corgi with the given kind. Optionally pass inital x / y coordinates
+* create a new Corgi with the given kind. Optionally pass inital x / y coordinates
 
 ## Corgi blocks
 
@@ -20,30 +20,30 @@ corgi.create(kind: number, x: number = 10, y: number = 70): Corgi
 Corgi.horizontalMovement(on: boolean): void
 ```
 
-> Make the character move in the direction indicated by the left and right arrow keys.
-> @param on set whether motion is turned on or off [optional]
+* Make the character move in the direction indicated by the left and right arrow keys.
+* @param on set whether motion is turned on or off [optional]
 
 ```ts
 Corgi.verticalMovement(on: boolean): void
 ```
 
-> Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
-> Interacts with the edges of the screen, and walls in a tilemap.
-> @param on set whether motion is turned on or off [optional]
+* Make the character jump when the up arrow key is pressed, and grab onto the wall when falling.
+* Interacts with the edges of the screen, and walls in a tilemap.
+* @param on set whether motion is turned on or off [optional]
 
 ```ts
 Corgi.updateSprite(on: boolean): void
 ```
 
-> Make the character change sprites when moving.
-> @param on set whether updating image is turned on or off [optional]
+* Make the character change sprites when moving.
+* @param on set whether updating image is turned on or off [optional]
 
 ```ts
 Corgi.follow(on: boolean): void
 ```
 
-> Set camera to follow corgi horizontally, while keeping the screen centered vertically.
-> @param on set whether camera follow is turned on or off [optional]
+* Set camera to follow corgi horizontally, while keeping the screen centered vertically.
+* @param on set whether camera follow is turned on or off [optional]
 
 ### Corgi Properties
 
@@ -66,7 +66,7 @@ Corgi.leftAnimation(input: Image[]): void
 Corgi.stillAnimation
 ```
 
-> Change the images used to represent the corgi; all images in the array will be cycled through to 'animate' the corgi. Setting the left animation will automatically update the animation for moving right as well.
+* Change the images used to represent the corgi; all images in the array will be cycled through to 'animate' the corgi. Setting the left animation will automatically update the animation for moving right as well.
 
 ### Speak
 
@@ -74,14 +74,14 @@ Corgi.stillAnimation
 Corgi.addToScript(input: string): void
 ```
 
-> Add the a new way phrase for the character to say
-> @param input phrase to add to script, eg: "bark"
+* Add the a new way phrase for the character to say
+* @param input phrase to add to script, eg: "bark"
 
 ```ts
 Corgi.bark(): void
 ```
 
-> Have the character say one of the phrases in the script at random
+* Have the character say one of the phrases in the script at random
 
 ## License
 
