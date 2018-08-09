@@ -3,7 +3,7 @@
 */
 //% weight=100 color=#d2b48c icon="\uf1b0"
 //% groups='["Create", "Movement", "Speak", "Properties"]'
-namespace corgi { 
+namespace corgi {
     export let _corgi_still: Image[] = [
         img`
             . . . . . . . . . . . . . . . .
