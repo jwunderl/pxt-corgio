@@ -1,6 +1,6 @@
 # pxt-corgio
 
-[Example game using Corgio](https://makecode.com/_bfKJ2tFgPPjs)
+[Example game using Corgio](https://makecode.com/_UjahFKWcJ4z9)
 
 ## Quick Reference
 
