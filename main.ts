@@ -291,6 +291,7 @@ class Corgi {
     private touching: number;
     private remainingJump: number;
     private script: string[];
+    private ball: Sprite;
 
     public constructor(kind: number, x: number, y: number) {
         this.maxMoveVelocity = 70;
@@ -351,16 +352,17 @@ class Corgi {
     //% blockId=horizontalMovement block="make %corgi(myCorg) move left and right with arrow keys || %on=toggleOnOff"
     //% weight=100 blockGap=5
     horizontalMovement(on: boolean = true): void {
-        let _this = this
+        let _this = this;
 
-        this.updateFlags(on, CorgiFlags.HorizontalMovement)
+        this.updateFlags(on, CorgiFlags.HorizontalMovement);
+        _this.ball = undefined;
 
         game.onUpdate(function () {
             if (!(_this.controlFlags & CorgiFlags.HorizontalMovement)) return;
             let dir: number = controller.dx();
 
             _this.player.vx = dir ? corgi.normalize(dir) * _this.maxMoveVelocity :
-                corgi.roundTowardsZero(_this.player.vx * _this.decelerationRate);
+                    corgi.roundTowardsZero(_this.player.vx * _this.decelerationRate);
         })
     }
 
@@ -371,12 +373,14 @@ class Corgi {
     //% blockId=verticalMovement block="make %corgi(myCorg) jump if up arrow key is pressed || %on=toggleOnOff"
     //% weight=100 blockGap=5
     verticalMovement(on: boolean = true): void {
-        let _this = this
+        let _this = this;
+
+        this.updateFlags(on, CorgiFlags.VerticalMovement);
+        _this.ball = undefined;
+
         controller.up.onEvent(ControllerButtonEvent.Released, function () {
             _this.releasedJump = true;
         })
-
-        this.updateFlags(on, CorgiFlags.VerticalMovement);
 
         game.onUpdate(function () {
             if (!(_this.controlFlags & CorgiFlags.VerticalMovement)) return;
@@ -386,25 +390,26 @@ class Corgi {
                     || _this.contactRight() && controller.left.isPressed()) {
                     _this.remainingJump = Math.max(_this.remainingJump + 1, _this.maxJump);
                 }
-                if (_this.remainingJump > 0 && _this.releasedJump) {
-                    _this.releasedJump = false;
-                    if (_this.initJump) {
-                        _this.player.vy = -1 * _this.jumpVelocity;
-                        _this.initJump = false;
-                    } else {
-                        _this.player.vy = Math.clamp((-4 * _this.jumpVelocity) / 3, -30,
-                            _this.player.vy - _this.jumpVelocity);
-                    }
-                    _this.remainingJump--;
-                }
+                _this.jumpImpulse();
+                // if (_this.remainingJump > 0 && _this.releasedJump) {
+                //     _this.releasedJump = false;
+                //     if (_this.initJump) {
+                //         _this.player.vy = -1 * _this.jumpVelocity;
+                //         _this.initJump = false;
+                //     } else {
+                //         _this.player.vy = Math.clamp((-4 * _this.jumpVelocity) / 3, -30,
+                //                 _this.player.vy - _this.jumpVelocity);
+                //     }
+                //     _this.remainingJump--;
+                // }
             }
 
             if ((_this.contactLeft() && controller.left.isPressed()
-                || _this.contactRight() && controller.right.isPressed())
-                && _this.player.vy > - 10) {
+                    || _this.contactRight() && controller.right.isPressed())
+                    && _this.player.vy > - 10) {
                 _this.player.ay = _this.gravity >> 2;
             } else {
-                _this.player.ay = _this.gravity
+                _this.player.ay = _this.gravity;
             }
 
             if (_this.contactBelow()) {
@@ -422,13 +427,13 @@ class Corgi {
     //% blockId=followCorgi block="make camera follow %corgi(myCorg) left and right || %on=toggleOnOff"
     //% weight=90 blockGap=5
     follow(on: boolean = true): void {
-        let _this = this
+        let _this = this;
 
         this.updateFlags(on, CorgiFlags.CameraFollow);
 
         game.onUpdate(function () {
             if (_this.controlFlags & CorgiFlags.CameraFollow) {
-                scene.centerCameraAt(_this.player.x, screen.height >> 1)
+                scene.centerCameraAt(_this.player.x, screen.height >> 1);
             }
         })
     }
@@ -472,8 +477,69 @@ class Corgi {
     //% group="Speak"
     //% blockId=bark block="make %corgi(myCorg) bark!"
     //% weight=95 blockGap=5
-    bark() {
+    bark(): void {
         this.player.say(Math.pickRandom(this.script), 250);
+    }
+
+    /**
+     * Make corgi follow sprite until it touches the sprite. 
+     * Cancels user motion controls (horizontal and vertical movement)
+     * @param ball sprite to follow
+     */
+    //% group="Movement"
+    //% blockId=fetch block="make %corgi(myCorg) fetch %ball=variables_get(mySprite)"
+    //% weight=10 blockGap=5
+    fetch(ball: Sprite): void {
+        this.updateFlags(false, CorgiFlags.HorizontalMovement);
+        this.updateFlags(false, CorgiFlags.VerticalMovement);
+        this.ball = ball;
+        let _this = this;
+
+        _this.player.ay = _this.gravity;
+
+        game.onUpdate(function () {
+            if (!_this.ball || (_this.ball.flags & sprites.Flag.Destroyed)) {
+                _this.ball = undefined;
+                return;
+            }
+            let xDiff = _this.ball.x - _this.sprite.x;
+            let yDiff = _this.ball.y - _this.sprite.y;
+            if (Math.abs(xDiff) < 3 && Math.abs(yDiff) < 3) {
+                // Corgi has caught ball
+                _this.ball = undefined;
+                _this.sprite.vx = 0;
+                _this.sprite.vy = 0;
+                return;
+            }
+            _this.sprite.vx = corgi.normalize(xDiff) * _this.maxMoveVelocity;
+            if (yDiff < 0 && Math.percentChance(5)) {
+                _this.jumpImpulse();
+                _this.releasedJump = true;
+            }
+
+            if (!_this.remainingJump) {
+                control.runInParallel(function () {
+                    pause(1000);
+                    _this.remainingJump = _this.maxJump;
+                    _this.initJump = true;
+                })
+            }
+        })
+    }
+
+    // Creates a jump if possible
+    jumpImpulse() {
+        if (this.remainingJump > 0 && this.releasedJump) {
+            this.releasedJump = false;
+            if (this.initJump) {
+                this.player.vy = -1 * this.jumpVelocity;
+                this.initJump = false;
+            } else {
+                this.player.vy = Math.clamp((-4 * this.jumpVelocity) / 3, -30,
+                        this.player.vy - this.jumpVelocity);
+            }
+            this.remainingJump--;
+        }
     }
 
     private updateFlags(on: boolean, flag: CorgiFlags): void {

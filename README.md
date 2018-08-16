@@ -45,6 +45,14 @@ Corgi.follow(on: boolean): void
 * Set camera to follow corgi horizontally, while keeping the screen centered vertically.
 * @param on set whether camera follow is turned on or off [optional]
 
+```ts
+Corgi.fetch(ball: Sprite): void
+```
+
+* Make corgi follow the ball until it 'catches' (gets close to) the ball
+* Cancels user control of Corgi
+* Currently in **beta**; behavior may become more robust (not move back and forth when at same x, interact with tilemap) in future updates
+
 ### Corgi Properties
 
 * horizontal speed: Max speed for corgi to move left and right
