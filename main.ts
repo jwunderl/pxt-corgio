@@ -212,7 +212,7 @@ namespace corgi {
 
     /**
      * Creates a new dart from an image and kind
-     * @param kind the kind to make the corgi
+     * @param kind the kind to make the corgi 
      * @param x optional initial x position, eg: 10
      * @param y optional initial y position, eg: 70
      */
