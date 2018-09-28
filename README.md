@@ -1,5 +1,8 @@
 # pxt-corgio
 
+A slightly editted version of this has been transferred to be a built in library in [Arcade](https://github.com/microsoft/pxt-arcade).
+
+
 [Example game using Corgio](https://makecode.com/_UjahFKWcJ4z9)
 
 ## Quick Reference
